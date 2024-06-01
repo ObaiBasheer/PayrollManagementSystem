@@ -4,7 +4,7 @@ namespace PayrollManagementSystem.Models
 {
     public class ApplicationDbContextSeed
     {
-        public static async Task SeedAsync(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        public static async Task SeedAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             string[] roles = new string[] { "Admin", "Manager", "Accountant" };
 
@@ -16,11 +16,11 @@ namespace PayrollManagementSystem.Models
                 }
             }
 
-            var users = new List<IdentityUser>
+            var users = new List<ApplicationUser>
         {
-            new IdentityUser { UserName = "admin@example.com", Email = "admin@example.com" },
-            new IdentityUser { UserName = "manager@example.com", Email = "manager@example.com" },
-            new IdentityUser { UserName = "accountant@example.com", Email = "accountant@example.com" }
+            new ApplicationUser { UserName = "admin@example.com", Email = "admin@example.com" },
+            new ApplicationUser { UserName = "manager@example.com", Email = "manager@example.com" },
+            new ApplicationUser { UserName = "accountant@example.com", Email = "accountant@example.com" }
         };
 
             foreach (var user in users)
