@@ -10,8 +10,9 @@ namespace PayrollManagementSystem.Data
 
         public DbSet<Employee> Employees { get; set; }
         public DbSet<SalaryList> SalaryLists { get; set; }
-        public DbSet<SalaryRequest> SalaryRequests { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<SalaryRequest> SalaryRequests { get; set; }
+        public DbSet<SalaryRequestItem> SalaryRequestItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
