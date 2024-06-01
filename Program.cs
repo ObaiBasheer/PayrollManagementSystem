@@ -66,11 +66,13 @@ builder.Services.AddScoped<EmployeeService>();
 builder.Services.AddScoped<SalaryRequestService>();
 builder.Services.AddScoped<SalaryListService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JwtOptions>();
+
 
 
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -101,7 +103,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     await ApplicationDbContextSeed.SeedAsync(userManager, roleManager);
 }
