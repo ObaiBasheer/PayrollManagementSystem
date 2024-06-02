@@ -12,6 +12,7 @@ using PayrollManagementSystem.Models;
 using PayrollManagementSystem.Models.Validation;
 using PayrollManagementSystem.Repositories.Employees;
 using PayrollManagementSystem.Repositories.SalaryListRepo;
+using PayrollManagementSystem.Repositories.SalaryRequestItemRepo;
 using PayrollManagementSystem.Repositories.SalaryRequests;
 using PayrollManagementSystem.Services;
 using System;
@@ -59,6 +60,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
    
 
+builder.Services.AddScoped<ISalaryRequestItemRepository, SalaryRequestItemRepository>();
 builder.Services.AddScoped<ISalaryRequestRepository, SalaryRepository>();
 builder.Services.AddScoped<ISalaryListRepository, SalaryListRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
