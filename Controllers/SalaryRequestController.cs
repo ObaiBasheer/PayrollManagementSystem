@@ -2,90 +2,64 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayrollManagementSystem.Models;
+using PayrollManagementSystem.Models.ViewModel;
 using PayrollManagementSystem.Services;
 
 namespace PayrollManagementSystem.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
- 
+
     [ApiController]
     public class SalaryRequestController : ControllerBase
     {
-        private readonly SalaryRequestService _service;
-        public SalaryRequestController(SalaryRequestService service)
-        {
-            _service = service;
-        }
+        private readonly SalaryRequestService _salaryRequestService;
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllSalaryRequests()
+        public SalaryRequestController(SalaryRequestService salaryRequestService)
         {
-            var salaryRequests = await _service.GetAllSalaryRequestsAsync();
-            return Ok(salaryRequests);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetSalaryRequestById(int id)
-        {
-            var salaryRequest = await _service.GetSalaryRequestByIdAsync(id);
-            if (salaryRequest == null)
-            {
-                return NotFound();
-            }
-            return Ok(salaryRequest);
+            _salaryRequestService = salaryRequestService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddSalaryRequest(SalaryRequest salaryRequest)
+        public async Task<IActionResult> CreateSalaryRequest([FromBody] SalaryRequestModel request)
         {
-            await _service.AddSalaryRequestAsync(salaryRequest);
-            return CreatedAtAction(nameof(GetSalaryRequestById), new { id = salaryRequest.Id }, salaryRequest);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSalaryRequest(int id, SalaryRequest salaryRequest)
-        {
-            if (id != salaryRequest.Id)
+            var salaryRequest = new SalaryRequest()
             {
-                return BadRequest();
-            }
-
-            await _service.UpdateSalaryRequestAsync(salaryRequest);
-            return NoContent();
+                Name = request.Name,
+                IsApprovedByAccountant = request.IsApprovedByAccountant,
+                IsApprovedByManager = request.IsApprovedByManager,
+                AccountantDocumentPath = request.AccountantDocumentPath,
+                ManagerDocumentPath = request.ManagerDocumentPath
+            };
+            var createdRequest = await _salaryRequestService.CreateSalaryRequestAsync(salaryRequest);
+            return Ok(createdRequest);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSalaryRequest(int id)
+        [HttpPost("{requestId}/items")]
+        public async Task<IActionResult> AddSalaryRequestItem(int requestId, [FromBody] int salaryId)
         {
-            await _service.DeleteSalaryRequestAsync(id);
-            return NoContent();
+            var item = await _salaryRequestService.AddSalaryRequestItemAsync(requestId, salaryId);
+            return Ok(item);
         }
 
-        //[Authorize(Roles = "Accountant")]
-        [HttpPost("{id}/approve-accountant")]
-        public async Task<IActionResult> ApproveByAccountant(int id,  IFormFile document)
+        [HttpPost("{requestId}/approveByAccountant")]
+        public async Task<IActionResult> ApproveByAccountant(int requestId)
         {
-            var documentPath = Path.Combine("Uploads", document.FileName);
-            using (var stream = new FileStream(documentPath, FileMode.Create))
-            {
-                await document.CopyToAsync(stream);
-            }
-            await _service.ApproveRequestByAccountantAsync(id, documentPath);
-            return NoContent();
+            var request = await _salaryRequestService.ApproveSalaryRequestByAccountantAsync(requestId);
+            return Ok(request);
         }
 
-        //[Authorize(Roles = "Manager")]
-        [HttpPost("{id}/approve-manager")]
-        public async Task<IActionResult> ApproveByManager(int id, IFormFile document)
+        [HttpPost("{requestId}/approveByManager")]
+        public async Task<IActionResult> ApproveByManager(int requestId)
         {
-            var documentPath = Path.Combine("Uploads", document.FileName);
-            using (var stream = new FileStream(documentPath, FileMode.Create))
-            {
-                await document.CopyToAsync(stream);
-            }
-            await _service.ApproveRequestByManagerAsync(id, documentPath);
-            return NoContent();
+            var request = await _salaryRequestService.ApproveSalaryRequestByManagerAsync(requestId);
+            return Ok(request);
+        }
+
+        [HttpPost("{requestId}/reject")]
+        public async Task<IActionResult> RejectRequest(int requestId)
+        {
+            var request = await _salaryRequestService.RejectSalaryRequestAsync(requestId);
+            return Ok(request);
         }
     }
 }
