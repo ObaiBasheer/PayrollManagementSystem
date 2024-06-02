@@ -6,6 +6,7 @@ using PayrollManagementSystem.Models.ViewModel;
 using PayrollManagementSystem.Services;
 using Microsoft.Extensions.Logging;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PayrollManagementSystem.Controllers
 {

@@ -20,6 +20,8 @@ namespace PayrollManagementSystem.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Accountant")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> CreateSalaryRequest([FromBody] SalaryRequestModel request)
         {
             var salaryRequest = new SalaryRequest()
@@ -35,6 +37,8 @@ namespace PayrollManagementSystem.Controllers
         }
 
         [HttpPost("{requestId}/items")]
+        [Authorize(Roles = "Accountant")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> AddSalaryRequestItem(int requestId, [FromBody] int salaryId)
         {
             var item = await _salaryRequestService.AddSalaryRequestItemAsync(requestId, salaryId);
@@ -42,6 +46,7 @@ namespace PayrollManagementSystem.Controllers
         }
 
         [HttpPost("{requestId}/approveByAccountant")]
+        [Authorize(Roles = "Accountant")]
         public async Task<IActionResult> ApproveByAccountant(int requestId)
         {
             var request = await _salaryRequestService.ApproveSalaryRequestByAccountantAsync(requestId);
@@ -49,6 +54,7 @@ namespace PayrollManagementSystem.Controllers
         }
 
         [HttpPost("{requestId}/approveByManager")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> ApproveByManager(int requestId)
         {
             var request = await _salaryRequestService.ApproveSalaryRequestByManagerAsync(requestId);
@@ -56,6 +62,8 @@ namespace PayrollManagementSystem.Controllers
         }
 
         [HttpPost("{requestId}/reject")]
+        [Authorize(Roles = "Accountant")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> RejectRequest(int requestId)
         {
             var request = await _salaryRequestService.RejectSalaryRequestAsync(requestId);

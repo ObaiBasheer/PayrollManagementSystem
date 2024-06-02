@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using PayrollManagementSystem.Models;
 using PayrollManagementSystem.Models.ViewModel;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -20,15 +21,13 @@ namespace PayrollManagementSystem.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly AuthService _Service;
-        private readonly JwtOptions _jwtOptions;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, AuthService service, JwtOptions jwtOptions)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, AuthService service)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _Service = service;
-            _jwtOptions = jwtOptions;
         }
 
         [HttpPost("register")]
@@ -45,8 +44,9 @@ namespace PayrollManagementSystem.Controllers
 
             return BadRequest(result.Errors);
         }
-        [Authorize("ADMIN")]
         [HttpPost("AssignRole")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> AssignRole(string email, string roleName)
         {
            var result = await _Service.AssignRole(email, roleName);
@@ -85,7 +85,7 @@ namespace PayrollManagementSystem.Controllers
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var key = Encoding.UTF8.GetBytes(_jwtOptions.Secret);
+            var key = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("JWT:JwtOptions:key")!);
 
             var claimList = new List<Claim>
             {
@@ -98,8 +98,8 @@ namespace PayrollManagementSystem.Controllers
 
             var descriptor = new SecurityTokenDescriptor
             {
-                Issuer = _jwtOptions.Issuer,
-                //Audience = _jwtOptions.Audience,
+                Issuer = _configuration.GetValue<string>("JWT:JwtOptions:Issuer"),
+                Audience = _configuration.GetValue<string>("JWT:JwtOptions:Audience"),
                 Expires = DateTime.UtcNow.AddDays(5),
                 Subject = new ClaimsIdentity(claimList),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

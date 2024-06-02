@@ -4,11 +4,17 @@ using PayrollManagementSystem.Models;
 using PayrollManagementSystem.Services;
 using PayrollManagementSystem.Models.Validation;
 using Microsoft.Extensions.Logging;
+using PayrollManagementSystem.Models.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PayrollManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Accountant")]
+    [Authorize(Roles = "Admin")]
+
     public class SalaryListController : ControllerBase
     {
         private readonly SalaryListService _service;
@@ -63,20 +69,24 @@ namespace PayrollManagementSystem.Controllers
         [ProducesResponseType(typeof(SalaryList), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> AddSalaryList(SalaryList salaryList)
+        public async Task<IActionResult> AddSalaryList(SalaryListViewModel salaryList)
         {
             try
             {
+                var salarys = new SalaryList() {
+                    EmployeeId = salaryList.EmployeeId,
+                    Salary = salaryList.Salary,
+                };
                 var validator = new SalaryListValidator();
-                var validationResult = await validator.ValidateAsync(salaryList);
+                var validationResult = await validator.ValidateAsync(salarys);
 
                 if (!validationResult.IsValid)
                 {
                     return BadRequest(string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
                 }
 
-                await _service.AddSalaryListAsync(salaryList);
-                return CreatedAtAction(nameof(GetSalaryListById), new { id = salaryList.Id }, salaryList);
+                await _service.AddSalaryListAsync(salarys);
+                return CreatedAtAction(nameof(GetSalaryListById), new { id = salarys.Id }, salaryList);
             }
             catch (Exception ex)
             {
