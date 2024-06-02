@@ -15,6 +15,7 @@ using PayrollManagementSystem.Repositories.SalaryListRepo;
 using PayrollManagementSystem.Repositories.SalaryRequestItemRepo;
 using PayrollManagementSystem.Repositories.SalaryRequests;
 using PayrollManagementSystem.Services;
+using PayrollManagementSystem.Utility;
 using System;
 using System.Text;
 
@@ -38,6 +39,7 @@ builder.Services.AddSwaggerGen(option =>
 
     option.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
+
         {
             new OpenApiSecurityScheme
             {
@@ -68,34 +70,19 @@ builder.Services.AddScoped<EmployeeService>();
 builder.Services.AddScoped<SalaryRequestService>();
 builder.Services.AddScoped<SalaryListService>();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<JwtOptions>();
 
 
 
 
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
+//builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT:JwtOptions"));
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JwtOptions:Issuer"],
-        ValidAudience = builder.Configuration["JwtOptions:Issuer"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtOptions:Key"]!))
-    };
-});
+//Configure Authentications
+builder.AddAppAuthentication();
+
 
 builder.Services.AddAuthorization();
 
