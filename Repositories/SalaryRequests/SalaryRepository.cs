@@ -13,56 +13,21 @@ namespace PayrollManagementSystem.Repositories.SalaryRequests
             _context = context;
         }
 
-        public async Task<IEnumerable<SalaryRequest>> GetSalaryRequestsAsync()
+        public async Task<SalaryRequest> GetSalaryRequestByIdAsync(int requestId)
         {
-            return await _context.SalaryRequests.Include(s => s.Employee).ToListAsync();
+            return await _context.SalaryRequests.Include(r => r.Items).ThenInclude(i => i.Salary).FirstOrDefaultAsync(r => r.Id == requestId);
         }
 
-        public async Task<SalaryRequest> GetSalaryRequestByIdAsync(int id)
+        public async Task AddSalaryRequestAsync(SalaryRequest request)
         {
-            return await _context.SalaryRequests.Include(s => s.Employee).FirstOrDefaultAsync(s => s.Id == id);
-        }
-
-        public async Task AddSalaryRequestAsync(SalaryRequest salaryRequest)
-        {
-            _context.SalaryRequests.Add(salaryRequest);
+            _context.SalaryRequests.Add(request);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateSalaryRequestAsync(SalaryRequest salaryRequest)
+        public async Task UpdateSalaryRequestAsync(SalaryRequest request)
         {
-            _context.Entry(salaryRequest).State = EntityState.Modified;
+            _context.SalaryRequests.Update(request);
             await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteSalaryRequestAsync(int id)
-        {
-            var salaryRequest = await _context.SalaryRequests.FindAsync(id);
-            if (salaryRequest != null)
-            {
-                _context.SalaryRequests.Remove(salaryRequest);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task ApproveByAccountantAsync(int id)
-        {
-            var salaryRequest = await _context.SalaryRequests.FindAsync(id);
-            if (salaryRequest != null)
-            {
-                salaryRequest.ApprovedByAccountant = true;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task ApproveByManagerAsync(int id)
-        {
-            var salaryRequest = await _context.SalaryRequests.FindAsync(id);
-            if (salaryRequest != null)
-            {
-                salaryRequest.ApprovedByManager = true;
-                await _context.SaveChangesAsync();
-            }
         }
     }
 }
