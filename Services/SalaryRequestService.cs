@@ -1,63 +1,84 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PayrollManagementSystem.Models;
+using PayrollManagementSystem.Repositories.SalaryListRepo;
+using PayrollManagementSystem.Repositories.SalaryRequestItemRepo;
 using PayrollManagementSystem.Repositories.SalaryRequests;
 
 namespace PayrollManagementSystem.Services
 {
     public class SalaryRequestService
     {
-        private readonly ISalaryRequestRepository _repository;
+        private readonly ISalaryListRepository _salaryRepository;
+        private readonly ISalaryRequestRepository _salaryRequestRepository;
+        private readonly ISalaryRequestItemRepository _salaryRequestItemRepository;
 
-        public SalaryRequestService(ISalaryRequestRepository repository)
+        public SalaryRequestService(
+            ISalaryListRepository salaryRepository,
+            ISalaryRequestRepository salaryRequestRepository,
+            ISalaryRequestItemRepository salaryRequestItemRepository)
         {
-            _repository = repository;
-        }
-        public async Task<IEnumerable<SalaryRequest>> GetAllSalaryRequestsAsync()
-        {
-            return await _repository.GetSalaryRequestsAsync();
-        }
-
-        public async Task<SalaryRequest> GetSalaryRequestByIdAsync(int id)
-        {
-            return await _repository.GetSalaryRequestByIdAsync(id);
+            _salaryRepository = salaryRepository;
+            _salaryRequestRepository = salaryRequestRepository;
+            _salaryRequestItemRepository = salaryRequestItemRepository;
         }
 
-        public async Task AddSalaryRequestAsync(SalaryRequest salaryRequest)
+        public async Task<SalaryRequest> CreateSalaryRequestAsync(SalaryRequest request)
         {
-            await _repository.AddSalaryRequestAsync(salaryRequest);
+            await _salaryRequestRepository.AddSalaryRequestAsync(request);
+            return request;
         }
 
-        public async Task UpdateSalaryRequestAsync(SalaryRequest salaryRequest)
+        public async Task<SalaryRequestItem> AddSalaryRequestItemAsync(int requestId, int salaryId)
         {
-            await _repository.UpdateSalaryRequestAsync(salaryRequest);
-        }
+            var salary = await _salaryRepository.GetSalaryListByIdAsync(salaryId);
+            if (salary == null) throw new Exception("Salary not found");
 
-        public async Task DeleteSalaryRequestAsync(int id)
-        {
-            await _repository.DeleteSalaryRequestAsync(id);
-        }
-        public async Task ApproveRequestByAccountantAsync(int id, string documentPath)
-        {
-            var salaryRequest = await _repository.GetSalaryRequestByIdAsync(id);
-            if (salaryRequest != null)
+            var request = await _salaryRequestRepository.GetSalaryRequestByIdAsync(requestId);
+            if (request == null) throw new Exception("Request not found");
+
+            var item = new SalaryRequestItem
             {
-                salaryRequest.ApprovedByAccountant = true;
-                salaryRequest.AccountantDocumentPath = documentPath;
-                await _repository.UpdateSalaryRequestAsync(salaryRequest);
-            }
+                SalaryRequestId = requestId,
+                SalaryId = salaryId,
+                Salary = salary
+            };
+
+            await _salaryRequestItemRepository.AddSalaryRequestItemAsync(item);
+            return item;
         }
 
-        public async Task ApproveRequestByManagerAsync(int id, string documentPath)
+        public async Task<SalaryRequest> ApproveSalaryRequestByAccountantAsync(int requestId)
         {
-            var salaryRequest = await _repository.GetSalaryRequestByIdAsync(id);
-            if (salaryRequest != null)
-            {
-                salaryRequest.ApprovedByManager = true;
-                salaryRequest.ManagerDocumentPath = documentPath;
-                await _repository.UpdateSalaryRequestAsync(salaryRequest);
-            }
+            var request = await _salaryRequestRepository.GetSalaryRequestByIdAsync(requestId);
+            if (request == null) throw new Exception("Request not found");
+
+            request.IsApprovedByAccountant = true;
+            await _salaryRequestRepository.UpdateSalaryRequestAsync(request);
+            return request;
         }
 
+        public async Task<SalaryRequest> ApproveSalaryRequestByManagerAsync(int requestId)
+        {
+            var request = await _salaryRequestRepository.GetSalaryRequestByIdAsync(requestId);
+            if (request == null) throw new Exception("Request not found");
+
+            if (!request.IsApprovedByAccountant) throw new Exception("Request not approved by accountant");
+
+            request.IsApprovedByManager = true;
+            await _salaryRequestRepository.UpdateSalaryRequestAsync(request);
+            return request;
+        }
+
+        public async Task<SalaryRequest> RejectSalaryRequestAsync(int requestId)
+        {
+            var request = await _salaryRequestRepository.GetSalaryRequestByIdAsync(requestId);
+            if (request == null) throw new Exception("Request not found");
+
+            request.IsApprovedByAccountant = false;
+            request.IsApprovedByManager = false;
+            await _salaryRequestRepository.UpdateSalaryRequestAsync(request);
+            return request;
+        }
 
     }
 
