@@ -61,13 +61,13 @@ namespace PayrollManagementSystem.Controllers
             return Ok(request);
         }
 
-        [HttpPost("{requestId}/reject")]
-        [Authorize(Roles = "Accountant")]
-        [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> RejectRequest(int requestId)
-        {
-            var request = await _salaryRequestService.RejectSalaryRequestAsync(requestId);
-            return Ok(request);
-        }
+        //[HttpPost("{requestId}/reject")]
+        //[Authorize(Roles = "Accountant")]
+        //[Authorize(Roles = "Manager")]
+        //public async Task<IActionResult> RejectRequest(int requestId)
+        //{
+        //    var request = await _salaryRequestService.RejectSalaryRequestAsync(requestId);
+        //    return Ok(request);
+        //}
     }
 }
